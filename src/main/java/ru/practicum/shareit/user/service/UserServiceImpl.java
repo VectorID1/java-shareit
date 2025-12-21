@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
@@ -15,10 +16,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public UserResponseDto create(UserCreateDto userCreateDto) {
         validateEmailUniqueness(userCreateDto.getEmail());
         User user = UserMapper.toUser(userCreateDto);
@@ -27,6 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDto update(Long userId, UserUpdateDto userUpdates) {
         User existingUser = getUserById(userId);
 
@@ -41,7 +45,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setName(userUpdates.getName());
         }
 
-        return UserMapper.toResponseDto(userRepository.update(existingUser));
+        return UserMapper.toResponseDto(existingUser);
     }
 
     @Override
@@ -60,10 +64,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId) {
-        getUserById(userId);
+        User user = getUserById(userId);
 
-        userRepository.delete(userId);
+        userRepository.delete(user);
     }
 
     private User getUserById(Long userId) {

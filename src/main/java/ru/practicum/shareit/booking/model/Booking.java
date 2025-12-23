@@ -8,14 +8,13 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "bookings")
-@ToString(exclude = {"item", "booker"})
-@EqualsAndHashCode(exclude = {"item", "booker"})
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -64,8 +64,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto updateBookingStatus(Long userId, Long bookingId, Boolean approved) {
 
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
+        Booking booking = getBookingIfExists(bookingId);
 
         Long ownerId = booking.getItem().getOwner().getId();
         if (!ownerId.equals(userId)) {
@@ -77,31 +76,36 @@ public class BookingServiceImpl implements BookingService {
         }
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         log.info("Обновление статуса бронирования с id = {}, новый статуст - {}", bookingId, booking.getStatus().toString());
-        Booking updateStatusBooking = bookingRepository.save(booking);
-        return BookingMapper.toResponseDto(updateStatusBooking);
+        return BookingMapper.toResponseDto(booking);
     }
 
-    @Override
     public BookingResponseDto getBookingById(Long userId, Long bookingId) {
-        Booking booking = bookingRepository.findByIdAndBookerIdOrOwnerId(bookingId, userId)
-                .orElseThrow(() ->
-                        new NotFoundException("Бронирование с Id " + bookingId + " не найдено"));
+        validateUserExists(userId);
+        Booking booking = getBookingIfExists(bookingId);
+
+        boolean hasAccess = booking.getBooker().getId().equals(userId) ||
+                booking.getItem().getOwner().getId().equals(userId);
+
+        if (!hasAccess) {
+            throw new AccessDeniedException("У вас нет доступа");
+        }
         log.info("Получение бронирования с Id = {}", bookingId);
         return BookingMapper.toResponseDto(booking);
     }
 
+
     @Override
     public List<BookingResponseDto> getUserBooking(Long userId, String state) {
-        validateUserExists(userId);
-        BookingState bookingState = parseState(state);
+        User user = getUserIfExists(userId);
+        BookingState bookingState = BookingState.parseState(state);
 
         List<Booking> bookings = switch (bookingState) {
-            case ALL -> bookingRepository.findByBookerIdOrderByStartDesc(userId);
-            case CURRENT -> bookingRepository.findCurrentByBooker(userId, LocalDateTime.now());
-            case PAST -> bookingRepository.findPastByBooker(userId, LocalDateTime.now());
-            case FUTURE -> bookingRepository.findFutureByBooker(userId, LocalDateTime.now());
-            case WAITING -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case REJECTED -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+            case ALL -> bookingRepository.findByBookerOrderByStartDesc(user);
+            case CURRENT -> bookingRepository.findCurrentByBooker(user, LocalDateTime.now());
+            case PAST -> bookingRepository.findPastByBooker(user, LocalDateTime.now());
+            case FUTURE -> bookingRepository.findFutureByBooker(user, LocalDateTime.now());
+            case WAITING -> bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.WAITING);
+            case REJECTED -> bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED);
         };
         log.info("Получение всех бронирований пользователя с Id = {}", userId);
         return bookings.stream()
@@ -111,7 +115,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponseDto> getOwnerBookings(Long userId, String state) {
-        validateUserExists(userId);
+        User user = getUserIfExists(userId);
 
         boolean hasItems = itemRepository.existsByOwnerId(userId);
 
@@ -119,16 +123,15 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("Пользователь не является владельцем вещей");
         }
 
-        BookingState bookingState = parseState(state);
+        BookingState bookingState = BookingState.parseState(state);
 
         List<Booking> bookings = switch (bookingState) {
-            case ALL -> bookingRepository.findByItemOwnerIdOrderByStartDesc(userId);
-            case CURRENT -> bookingRepository.findCurrentByItemOwner(userId, LocalDateTime.now());
-            case PAST -> bookingRepository.findPastByItemOwner(userId, LocalDateTime.now());
-            case FUTURE -> bookingRepository.findFutureByItemOwner(userId, LocalDateTime.now());
-            case WAITING -> bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case REJECTED ->
-                    bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+            case ALL -> bookingRepository.findByItemOwnerOrderByStartDesc(user);
+            case CURRENT -> bookingRepository.findCurrentByItemOwner(user, LocalDateTime.now());
+            case PAST -> bookingRepository.findPastByItemOwner(user, LocalDateTime.now());
+            case FUTURE -> bookingRepository.findFutureByItemOwner(user, LocalDateTime.now());
+            case WAITING -> bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, BookingStatus.WAITING);
+            case REJECTED -> bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED);
         };
         log.info("Получение всех бронирований владельца предметов с Id = {}", userId);
         return bookings.stream()
@@ -154,12 +157,10 @@ public class BookingServiceImpl implements BookingService {
                         new NotFoundException("Вещь с Id " + itemId + " не найдена"));
     }
 
-    private BookingState parseState(String state) {
-        try {
-            return BookingState.valueOf(state.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Неизвестный статус: " + state);
-        }
+    private Booking getBookingIfExists(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new NotFoundException("Бронирование с Id " + bookingId + " не найдено"));
     }
 }
 

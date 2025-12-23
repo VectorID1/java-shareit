@@ -23,7 +23,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookerAndStatusOrderByStartDesc(
             User booker, BookingStatus status);
 
-    List<Booking> findByItemOwnerOrderByStartDesc(User ownerId);
+    List<Booking> findByItemOwnerOrderByStartDesc(User owner);
 
     List<Booking> findByItemOwnerAndStatusOrderByStartDesc(User owner, BookingStatus status);
 
@@ -113,7 +113,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY b.start ASC " +
             "LIMIT 1")
     Optional<Booking> findNextBookingForItem(
-            @Param("item") Item itemId,
+            @Param("item") Item item,
             @Param("currentTime") LocalDateTime currentTime);
 
     boolean existsByBookerAndItemAndEndBeforeAndStatus(

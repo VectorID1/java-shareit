@@ -116,12 +116,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("item") Item item,
             @Param("currentTime") LocalDateTime currentTime);
 
-    boolean existsByBookerAndItemAndStatusAndEndBefore(
-            User booker,
-            Item item,
-            BookingStatus status,
-            LocalDateTime end
+    @Query("SELECT COUNT(b) > 0 FROM Booking b " +
+            "WHERE b.booker = :booker " +
+            "AND b.item = :item " +
+            "AND b.end < :currentTime " +
+            "AND b.status = 'APPROVED'")
+    boolean existsByBookerAndItemAndEndBefore(
+            @Param("booker") User booker,
+            @Param("item") Item item,
+            @Param("currentTime") LocalDateTime currentTime);
 
-    );
+
+//    boolean existsByBookerAndItemAndStatusAndEndBefore(
+//            User booker,
+//            Item item,
+//            BookingStatus status,
+//            LocalDateTime end
+//
+//    );
 
 }

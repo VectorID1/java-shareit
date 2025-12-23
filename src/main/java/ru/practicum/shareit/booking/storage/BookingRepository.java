@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -16,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findByItemIdIn(List<Long> itemIds);
+    List<Booking> findByItem_IdIn(List<Long> itemIds);
 
     List<Booking> findByBookerOrderByStartDesc(User booker);
 
@@ -29,101 +28,106 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // Текущие бронирования пользователч
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.item " +
-            "JOIN FETCH b.booker " +
-            "WHERE b.booker = :booker " +
-            "AND b.start <= :currentTime AND b.end >= :currentTime " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker bk " +
+            "WHERE bk.id = :bookerId " +
+            "AND b.start <= :currentTime " +
+            "AND b.end >= :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findCurrentByBooker(
-            @Param("booker") User booker,
+            @Param("bookerId") Long bookerId,
             @Param("currentTime") LocalDateTime currentTime);
 
     // Прошлые бронирования пользователя
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.item " +
-            "JOIN FETCH b.booker " +
-            "WHERE b.booker = :booker " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker bk " +
+            "WHERE bk.id = :bookerId " +
             "AND b.end < :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findPastByBooker(
-            @Param("booker") User booker,
+            @Param("bookerId") Long bookerId,
             @Param("currentTime") LocalDateTime currentTime);
 
     // Будущие бронирования пользователя
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.item " +
-            "JOIN FETCH b.booker " +
-            "WHERE b.booker = :booker " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker bk " +
+            "WHERE bk.id = :bookerId " +
             "AND b.start > :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findFutureByBooker(
-            @Param("booker") User booker,
+            @Param("bookerId") Long bookerId,
             @Param("currentTime") LocalDateTime currentTime);
 
 
     // Текущие
     @Query("SELECT b FROM Booking b " +
             "JOIN FETCH b.item i " +
-            "WHERE b.item.owner = :owner " +
-            "AND b.start <= :currentTime " +
-            "AND b.end >= :currentTime " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId " +
+            "AND b.start <= :currentTime AND " +
+            "b.end >= :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findCurrentByItemOwner(
-            @Param("owner") User owner,
+            @Param("ownerId") Long ownerId,
             @Param("currentTime") LocalDateTime currentTime);
 
 
     // Прошлые
     @Query("SELECT b FROM Booking b " +
             "JOIN FETCH b.item i " +
-            "WHERE b.item.owner = :owner " +
-            "AND b.end < :currentTime " +
+            "JOIN FETCH b.booker " +
+            "WHERE i.owner.id = :ownerId AND " +
+            "b.end < :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findPastByItemOwner(
-            @Param("owner") User owner,
+            @Param("ownerId") Long ownerId,
             @Param("currentTime") LocalDateTime currentTime);
 
     // Будущие
     @Query("SELECT b FROM Booking b " +
+            "JOIN FETCH b.item i " +
             "JOIN FETCH b.booker " +
-            "WHERE b.item.owner = :owner " +
-            "AND b.start > :currentTime " +
+            "WHERE i.owner.id = :ownerId AND b.start > :currentTime " +
             "ORDER BY b.start DESC")
     List<Booking> findFutureByItemOwner(
-            @Param("owner") User owner,
+            @Param("ownerId") Long ownerId,
             @Param("currentTime") LocalDateTime currentTime);
 
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.booker " +
-            "WHERE b.item = :item " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker bk " +
+            "WHERE i.id = :itemId " +
             "AND b.end < :currentTime " +
             "AND b.status = 'APPROVED' " +
             "ORDER BY b.end DESC " +
             "LIMIT 1")
     Optional<Booking> findLastBookingForItem(
-            @Param("item") Item item,
+            @Param("itemId") Long itemId,
             @Param("currentTime") LocalDateTime currentTime);
 
 
     @Query("SELECT b FROM Booking b " +
-            "JOIN FETCH b.booker " +
-            "WHERE b.item = :item " +
+            "JOIN FETCH b.item i " +
+            "JOIN FETCH b.booker bk " +
+            "WHERE i.id = :itemId " +
             "AND b.start > :currentTime " +
             "AND b.status = 'APPROVED' " +
             "ORDER BY b.start ASC " +
             "LIMIT 1")
     Optional<Booking> findNextBookingForItem(
-            @Param("item") Item item,
+            @Param("itemId") Long itemId,
             @Param("currentTime") LocalDateTime currentTime);
 
     @Query("SELECT COUNT(b) > 0 FROM Booking b " +
-            "WHERE b.booker = :booker " +
-            "AND b.item = :item " +
+            "WHERE b.booker.id = :bookerId " +
+            "AND b.item.id = :itemId " +
             "AND b.end < :currentTime " +
             "AND b.status = 'APPROVED'")
-    boolean existsByBookerAndItemAndEndBefore(
-            @Param("booker") User booker,
-            @Param("item") Item item,
+    boolean existsByBookerIdAndItemIdAndEndBefore(
+            @Param("bookerId") Long bookerId,
+            @Param("itemId") Long itemId,
             @Param("currentTime") LocalDateTime currentTime);
 
 

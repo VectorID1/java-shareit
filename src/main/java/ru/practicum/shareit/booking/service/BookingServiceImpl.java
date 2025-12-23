@@ -101,9 +101,9 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> bookings = switch (bookingState) {
             case ALL -> bookingRepository.findByBookerOrderByStartDesc(user);
-            case CURRENT -> bookingRepository.findCurrentByBooker(user, LocalDateTime.now());
-            case PAST -> bookingRepository.findPastByBooker(user, LocalDateTime.now());
-            case FUTURE -> bookingRepository.findFutureByBooker(user, LocalDateTime.now());
+            case CURRENT -> bookingRepository.findCurrentByBooker(userId, LocalDateTime.now());
+            case PAST -> bookingRepository.findPastByBooker(userId, LocalDateTime.now());
+            case FUTURE -> bookingRepository.findFutureByBooker(userId, LocalDateTime.now());
             case WAITING -> bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.WAITING);
             case REJECTED -> bookingRepository.findByBookerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED);
         };
@@ -127,9 +127,9 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> bookings = switch (bookingState) {
             case ALL -> bookingRepository.findByItemOwnerOrderByStartDesc(user);
-            case CURRENT -> bookingRepository.findCurrentByItemOwner(user, LocalDateTime.now());
-            case PAST -> bookingRepository.findPastByItemOwner(user, LocalDateTime.now());
-            case FUTURE -> bookingRepository.findFutureByItemOwner(user, LocalDateTime.now());
+            case CURRENT -> bookingRepository.findCurrentByItemOwner(userId, LocalDateTime.now());
+            case PAST -> bookingRepository.findPastByItemOwner(userId, LocalDateTime.now());
+            case FUTURE -> bookingRepository.findFutureByItemOwner(userId, LocalDateTime.now());
             case WAITING -> bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, BookingStatus.WAITING);
             case REJECTED -> bookingRepository.findByItemOwnerAndStatusOrderByStartDesc(user, BookingStatus.REJECTED);
         };

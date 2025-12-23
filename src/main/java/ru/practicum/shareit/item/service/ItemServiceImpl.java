@@ -90,7 +90,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = getItemById(itemId);
 
         LocalDateTime now = LocalDateTime.now();
-        boolean exists = bookingRepository.existsByBookerAndItemAndEndBefore(author, item, now);
+        boolean exists = bookingRepository.existsByBookerIdAndItemIdAndEndBefore(userId, itemId, now);
 
         if (!exists) {
             throw new ValidationException("Пользователь не брал эту вещь в аренду");
@@ -124,12 +124,12 @@ public class ItemServiceImpl implements ItemService {
             LocalDateTime now = LocalDateTime.now();
 
             lastBooking = bookingRepository
-                    .findLastBookingForItem(item, now)
+                    .findLastBookingForItem(itemId, now)
                     .map(BookingMapper::toBookingShortDto)
                     .orElse(null);
 
             nextBooking = bookingRepository
-                    .findNextBookingForItem(item, now)
+                    .findNextBookingForItem(itemId, now)
                     .map(BookingMapper::toBookingShortDto)
                     .orElse(null);
         }
@@ -153,7 +153,7 @@ public class ItemServiceImpl implements ItemService {
                 ));
 
         Map<Long, List<Booking>> bookingsByItemId = bookingRepository
-                .findByItemIdIn(itemIds)
+                .findByItem_IdIn(itemIds)
                 .stream()
                 .collect(Collectors.groupingBy(
                         booking -> booking.getItem().getId(),

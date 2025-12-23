@@ -116,11 +116,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("item") Item item,
             @Param("currentTime") LocalDateTime currentTime);
 
-    boolean existsByBookerAndItemAndEndBeforeAndStatus(
+    boolean existsByBookerAndItemAndStatusAndEndBefore(
             User booker,
             Item item,
-            LocalDateTime end,
-            BookingStatus status
+            BookingStatus status,
+            LocalDateTime end
+
     );
 
 }

@@ -91,7 +91,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = getItemById(itemId);
 
         LocalDateTime now = LocalDateTime.now();
-        boolean exists = bookingRepository.existsByBookerAndItemAndEndBeforeAndStatus(author, item, now, BookingStatus.APPROVED);
+        boolean exists = bookingRepository.existsByBookerAndItemAndStatusAndEndBefore(author, item, BookingStatus.APPROVED, now);
 
         if (!exists) {
             throw new ValidationException("Пользователь не брал эту вещь в аренду");

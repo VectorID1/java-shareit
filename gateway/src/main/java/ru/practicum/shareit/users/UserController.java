@@ -22,9 +22,10 @@ public class UserController {
         log.info("Creating user {}", userRequestDto.getName());
         return userClient.createUser(userRequestDto);
     }
+
     @GetMapping
     public ResponseEntity<Object> getAll(@RequestParam(name = "from", defaultValue = "0") Integer from,
-                                        @RequestParam(name = "size", defaultValue = "10") Integer size){
+                                         @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("GET /users - получение всех пользователей");
         return userClient.getAllUsers(from, size);
     }
@@ -37,7 +38,7 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public ResponseEntity update(@PathVariable Long userId,
-                                  @RequestBody UserRequestDto requestDto) {
+                                 @RequestBody UserRequestDto requestDto) {
         log.info("PATCH /users/{} - обновление пользователя", userId);
         return userClient.updateUser(userId, requestDto);
     }

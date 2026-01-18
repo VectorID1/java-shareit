@@ -26,6 +26,7 @@ public class ItemClient extends BaseClient {
                         .build()
         );
     }
+
     public ResponseEntity<Object> createItem(long ownerId, ItemRequestDto requestDto) {
         return post("", ownerId, requestDto);
     }

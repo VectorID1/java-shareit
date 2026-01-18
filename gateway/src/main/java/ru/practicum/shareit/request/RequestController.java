@@ -16,6 +16,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 public class RequestController {
 
     private final RequestClient requestClient;
+
     @PostMapping
     public ResponseEntity createRequest(
             @RequestHeader("X-Sharer-User-Id") Long userId,
@@ -23,6 +24,7 @@ public class RequestController {
         log.info("POST /requests - создание запроса пользователем {}", userId);
         return requestClient.createRequest(userId, requestDto);
     }
+
     @GetMapping
     public ResponseEntity<Object> getOwnerRequests(
             @RequestHeader("X-Sharer-User-Id") Long userId) {

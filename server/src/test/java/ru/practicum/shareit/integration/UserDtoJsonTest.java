@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @JsonTest
 public class UserDtoJsonTest {
+
     @Autowired
     private ObjectMapper objectMapper;
 

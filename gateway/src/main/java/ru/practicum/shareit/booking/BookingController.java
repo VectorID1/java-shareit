@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -17,18 +18,18 @@ import ru.practicum.shareit.booking.dto.BookingState;
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class BookingController {
     private final BookingClient bookingClient;
 
     @GetMapping
     public ResponseEntity<Object> getBookings(@RequestHeader("X-Sharer-User-Id") long userId,
-                                              @RequestParam(name = "state", defaultValue = "all") String stateParam,
+                                              @RequestParam(name = "state", defaultValue = "ALL") BookingState stateParam,
                                               @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                               @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
+
         log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
-        return bookingClient.getBookings(userId, state, from, size);
+        return bookingClient.getBookings(userId, stateParam, from, size);
     }
 
     @PostMapping
@@ -57,13 +58,11 @@ public class BookingController {
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingOwnerItems(
             @RequestHeader("X-Sharer-User-Id") Long userId,
-            @RequestParam(name = "state", defaultValue = "all") String stateParam,
+            @RequestParam(name = "state", defaultValue = "ALL") BookingState stateParam,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("GET /bookings/owner?state={} для владельца {}",
                 stateParam, userId);
-        BookingState state = BookingState.from(stateParam).orElseThrow(() ->
-                new IllegalArgumentException("Неизвестный статус"));
-        return bookingClient.getBookingOwnerItems(userId, state, from, size);
+        return bookingClient.getBookingOwnerItems(userId, stateParam, from, size);
     }
 }

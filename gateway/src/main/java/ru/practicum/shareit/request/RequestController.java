@@ -1,10 +1,13 @@
 package ru.practicum.shareit.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
@@ -13,6 +16,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class RequestController {
 
     private final RequestClient requestClient;
@@ -35,8 +39,8 @@ public class RequestController {
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(
             @RequestHeader("X-Sharer-User-Id") Long userId,
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+            @Positive @RequestParam(defaultValue = "10") Integer size) {
         log.info("GET /requests/all - получение всех запросов пользователем {} , from={}, size={}",
                 userId, from, size);
         return requestClient.getAllRequest(userId, from, size);

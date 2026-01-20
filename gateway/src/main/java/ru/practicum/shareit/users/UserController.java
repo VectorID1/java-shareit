@@ -1,6 +1,8 @@
 package ru.practicum.shareit.users;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +20,16 @@ public class UserController {
     private final UserClient userClient;
 
     @PostMapping
-    public ResponseEntity<Object> create(@Valid @RequestBody UserRequestDto userRequestDto) {
+    public ResponseEntity<Object> create(
+            @Valid @RequestBody UserRequestDto userRequestDto) {
         log.info("Creating user {}", userRequestDto.getName());
         return userClient.createUser(userRequestDto);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAll(@RequestParam(name = "from", defaultValue = "0") Integer from,
-                                         @RequestParam(name = "size", defaultValue = "10") Integer size) {
+    public ResponseEntity<Object> getAll(
+            @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("GET /users - получение всех пользователей");
         return userClient.getAllUsers(from, size);
     }
